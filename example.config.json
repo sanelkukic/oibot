@@ -1,0 +1,13 @@
+{
+  "username": "",
+  "password": "",
+  "server": "nwws-oi.weather.gov",
+  "port": 5222,
+  "use_ssl": false,
+  "resource": "nwws",
+  "wfo_offices": [
+    ""
+  ],
+  "discord_webhook": "",
+  "enable_win10_notifications": false
+}
