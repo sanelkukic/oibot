@@ -33,7 +33,7 @@ Once you have obtained your credentials, you need to create a `.json` file that 
 }
 ```
 
-**If you wish to receive messages from all WFOs, put the word "all" in your `wfo_offices` configuration, such that it looks like this:**
+**If you wish to receive messages from all WFOs, put the word "every" in your `wfo_offices` configuration, such that it looks like this:**
 ```json
 "wfo_offices": [
     "every"

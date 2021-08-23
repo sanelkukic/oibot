@@ -379,6 +379,13 @@ if __name__ == '__main__':
         new_webhook_url = "https://" + discord_webhook_parts[2] + "/" + discord_webhook_parts[3] + "/" + discord_webhook_parts[4] + "/" + discord_webhook_parts[5] + "/" + discord_webhook_parts[6]
         print("\t:: Discord webhook URL = "+new_webhook_url)
 
+        # Print the list of WFOs that the user has configured to receive messages from
+        configured_wfos = config['wfo_offices']
+        wfo_list = ""
+        for wfo in configured_wfos:
+            wfo_list += wfo.upper() + ", "
+        print("\t:: Configured WFO offices: "+wfo_list)
+
         # Check if we're on Windows 10 and if the user chose to enable the toast notifications feature
         if sys.platform == "win32":
             print("\t:: Enable Windows 10 Notifications API? "+str(config['enable_win10_notifications']) + "\n")
