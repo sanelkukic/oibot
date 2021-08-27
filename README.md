@@ -77,6 +77,29 @@ If you are running this script on Windows 10, you can install an additional pack
 
 It really is that easy :D
 
+### Validating your configuration file
+If you believe your configuration file is invalid, you can use OIBot's built-in configuration validation tool to check. Simply run the following commands in your terminal:
+```bash
+$ python oibot.py <path to your config here> --validate
+```
+For example, if your configuration file is located in the same directory as the Python script, and it's named `config.json`, you would run:
+```bash
+$ python oibot.py config.json --validate
+```
+
+---
+
+OIBot will try to open the configuration file and validate it. If the validation passes, you'll see the following output:
+```
+[i] Configuration file is valid
+```
+However, if the configuration is not valid, you will see either an error message detailing what setting is invalid in the configuration or the following message:
+```
+[x] Failed to validate that configuration file
+```
+
+
+
 ## Is this free to use? Do I need to buy a license?
 Yes, and no. This is completely free-to-use by anyone who is authorized to access NWWS-OI. You do not need to pay me a single penny to use this, however, I would greatly appreciate it if you [sponsor me on GitHub](https://github.com/sponsors/sanelk2004) or [bought me a coffee](https://cash.app/$3reetop).
 

@@ -312,6 +312,96 @@ def _asyncio_task_handler(task: asyncio.Task) -> None:
         print("[x] Exception encountered during asynchronous task = "+task+": \n")
         traceback.print_exc()
 
+# This is a method to validate the configuration JSON file and ensure all fields
+# that need to be there, are there and that proper value types (int, boolean, string, etc)
+# are adhered to.
+def validate_config(config):
+    # First we check the username and password, and make sure they are strings and non-empty
+    if not isinstance(config['username'], str):
+        print("[x] Your username is not a string. Your username must be a string in the configuration file.")
+        sys.exit(1)
+
+    if config['username'] is '' or None:
+        print("[x] Your username is empty. You must have a username and password from the National Weather Service to use this program. You can obtain a username and password at https://weather.gov/nwws")
+        sys.exit(1)
+
+    if not isinstance(config['password'], str):
+        print("[x] Your password is not a string. Your password must be a string in the configuration file.")
+        sys.exit(1)
+
+    if config['password'] is '' or None:
+        print("[x] Your password is empty. You must have a username and password from the National Weather Service to use this program. You can obtain a username and password at https://weather.gov/nwws")
+        sys.exit(1)
+
+    # Now we check the server and port fields to make sure they are of the correct type and not empty
+    if not isinstance(config['server'], str):
+        print("[x] The server you set in the configuration file is not a string. The server field must be a string.")
+        sys.exit(1)
+
+    if config['server'] == '' or None:
+        print("[x] You did not set a server to connect to. Please enter the URL of the server to connect to in the configuration file.")
+        sys.exit(1)
+
+    if not isinstance(config['port'], int):
+        print("[x] The port is not an integer. The port must be an integer, and not a string, in the configuration file.")
+        sys.exit(1)
+
+    if config['port'] == 0 or '' or None:
+        print("[x] The port is invalid. You must set a valid port number in the configuration file to use this program.")
+        sys.exit(1)
+
+    # Now we check use_ssl and resource
+
+    if not isinstance(config['use_ssl'], bool):
+        print("[x] The use_ssl setting in the configuration file is not a boolean. It must be a boolean (true/false) and not a string.")
+        sys.exit(1)
+
+    if config['use_ssl'] is '' or 0 or None:
+        print("[x] Invalid setting for use_ssl in the configuration file. It must either be true or false.")
+        sys.exit(1)
+
+    if not isinstance(config['resource'], str):
+        print("[x] The resource setting in the configuration file is not a string. It must be a string.")
+        sys.exit(1)
+
+    if config['resource'] is '' or None:
+        print("[x] Invalid setting for resource in the configuration file. Please set a valid XMPP resource.")
+        sys.exit(1)
+
+    # Now we check wfo_offices and discord_webhook
+    if not isinstance(config['wfo_offices'], list):
+        print("[x] The wfo_offices setting is not an array. It must be an array containing at least one element representing the CCCC of the WFO you wish to monitor on NWWS-OI.")
+        sys.exit(1)
+
+    if len(config['wfo_offices']) is 0:
+        print("[x] You must have at least one WFO set in your wfo_offices configuration variable. If you wish to monitor all available WFOs on NWWS-OI, add the word 'every' to your wfo_offices configuration.")
+        sys.exit(1)
+
+    if not isinstance(config['discord_webhook'], str):
+        print("[x] Your Discord webhook URL is not stored as a string. It must be a string.")
+        sys.exit(1)
+
+    if config['discord_webhook'] is '' or None:
+        print("[x] Invalid Discord webhook URL. You must set a Discord webhook URL to send NWWS-OI messages to in order to use this program.")
+        sys.exit(1)
+
+    # And lastly, we check the Windows 10 notifications setting
+    # Here we need to first check if we're on Windows 10
+    if sys.platform == "win32":
+        if not isinstance(config['enable_win10_notifications'], bool):
+            print("[x] Windows 10 notifications setting is not a boolean. It must be set to a boolean of either true or false.")
+            sys.exit(1)
+
+        if config['enable_win10_notifications'] is None:
+            print("[x] Invalid setting for Windows 10 notifications. It must be a boolean of either true or false.")
+            sys.exit(1)
+
+    # If we made it to this line, then we know that the program did not exit and the configuration is completely valid
+    # so let's return the value True to signify that
+    print("[i] Configuration file is valid")
+    return True
+
+
 # Everything after this line will run when we run the script directly without passing parameters.
 if __name__ == '__main__':
     # Register SIGINT so that we can CTRL+C and exit gracefully
@@ -327,6 +417,7 @@ if __name__ == '__main__':
     parser.add_argument("config", nargs="?", help="Absolute path to the configuration JSON file to use.")
     parser.add_argument("-g", "--gen-config", action="store_true", help="Generate a template configuration file in the current directory that you can fill in.")
     parser.add_argument("-l", "--license", action="store_true", help="View the text of the program's license.")
+    parser.add_argument("-v", "--validate", action="store_true", help="Validate the given configuration file.")
     args = parser.parse_args()
 
     # If the user did not specify the path to a configuration file
@@ -334,13 +425,23 @@ if __name__ == '__main__':
         gen_config()
     elif args.license:
         view_license()
+    elif args.validate:
+        if args.config is None:
+            print("[x] You must specify the configuration file to validate! Example:\noibot.py config.json --validate\n\n")
+        else:
+            try:
+                v_config = json.load(open(args.config))
+                validate_config(v_config)
+            except Exception as e:
+                print("[x] Failed to validate that configuration file!")
+                sys.exit(1)
     elif args.config is None:
         # Show an error message and exit
         print("[x] You must specify the path to a JSON configuration file to use with OIBot!")
         sys.exit(1)
     else:
-        # Attempt to connect to the XMPP server
-        print("[i] Trying to connect with the following details...")
+        # Load configuration file
+        print("[i] Loading configuration file...")
         global config
         config = None
         try:
@@ -348,6 +449,11 @@ if __name__ == '__main__':
         except Exception as e:
             print("[x] Failed to load configuration file!")
             sys.exit(1)
+        # Validate configuration file
+        print("[i] Validating configuration file...")
+        validate_config(config)
+        # Attempt to connect to the XMPP server
+        print("[i] Trying to connect using the following details: ")
         xmpp_jid = config['username'] + '@' + config['server']
         xmpp_room = 'nwws@conference.' + config['server'] + '/' + config['resource']
         # Print configuration details
