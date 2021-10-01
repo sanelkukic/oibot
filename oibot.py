@@ -54,7 +54,6 @@ def sigint(sig, frame):
 
 # Event handler for SIGTERM (graceful termination)
 def sigterm(sig, frame):
-    print("\n\n[i] Disconnecting from NWWS-OI and exiting gracefully...")
     xmpp.disconnect()
     sys.exit(0)
 
