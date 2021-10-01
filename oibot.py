@@ -38,7 +38,6 @@ from xml.dom import minidom
 import ssl
 import signal
 import sys
-import os
 import datetime
 from argparse import ArgumentParser
 import traceback
@@ -59,9 +58,6 @@ def sigterm(sig, frame):
     xmpp.disconnect()
     sys.exit(0)
 
-# Helper function for async toast management
-async def show_toast_msg(content) -> None:
-    toaster.show_toast("New message from NWWS-OI", content, duration=10)
 
 # I would add a handler for SIGKILL but the point of SIGKILL is that you should not handle it
 # and it should immediately kill the process, so I won't. I doubt that a handler for SIGKILL
@@ -244,9 +240,7 @@ class OIBot(slixmpp.ClientXMPP):
 
                 # If we're on Windows and we have the toast notifications API enabled
                 if sys.platform == "win32" and config['enable_win10_notifications'] is True:
-                    loop = asyncio.get_event_loop()
-                    task = loop.create_task(show_toast_msg(message['body']))
-                    task.add_done_callback(_asyncio_task_handler)
+                    toaster.show_toast("New message from NWWS-OI", content, duration=10)
                     print("\t\t[i] Successfully sent Windows 10 toast notification")
 
                 print("==||== End Of Message ==||==")
